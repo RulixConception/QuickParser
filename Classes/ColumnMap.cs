@@ -10,7 +10,7 @@ namespace QuickParser.Classes
     public class ColumnMap<T>
     {
         private readonly Func<ParsedRow, T>? _transformWithoutValue = null;
-        private readonly Func<string?, ParsedRow, T>? _transformWithValue = null;
+        private readonly Func<string, ParsedRow, T>? _transformWithValue = null;
 
         /// <summary>
         /// Name of the column
@@ -22,25 +22,25 @@ namespace QuickParser.Classes
         /// </summary>
         public int? Index { get; set; }
 
-        public ColumnMap(Enum columnName, Func<string?, T> transform)
+        public ColumnMap(Enum columnName, Func<string, T> transform)
             : this(columnName, (value, _) => transform.Invoke(value))
         {
 
         }
 
-        public ColumnMap(int columnIndex, Func<string?, T> transform)
+        public ColumnMap(int columnIndex, Func<string, T> transform)
             : this(columnIndex, (value, _) => transform.Invoke(value))
         {
 
         }
 
-        public ColumnMap(Enum columnName, Func<string?, ParsedRow, T> transform)
+        public ColumnMap(Enum columnName, Func<string, ParsedRow, T> transform)
         {
             Name = columnName.GetAttributeOfType<ColumnAttribute>()?.Name ?? "";
             _transformWithValue = transform;
         }
 
-        public ColumnMap(int columnIndex, Func<string?, ParsedRow, T> transform)
+        public ColumnMap(int columnIndex, Func<string, ParsedRow, T> transform)
         {
             Index = columnIndex;
             _transformWithValue = transform;
@@ -76,7 +76,7 @@ namespace QuickParser.Classes
             if (_transformWithoutValue != null)
                 return _transformWithoutValue.Invoke(row);
             else if (_transformWithValue != null)
-                return _transformWithValue.Invoke(Index.HasValue ? row[Index.Value] : (!string.IsNullOrEmpty(Name) ? row[Name] : default), row);
+                return _transformWithValue.Invoke(Index.HasValue ? row[Index.Value] : (!string.IsNullOrEmpty(Name) ? row[Name] : ""), row);
             else if (typeof(T) == typeof(string))
                 return Index.HasValue ? (T)(object)row[Index.Value] : (!string.IsNullOrEmpty(Name) ? (T)(object)row[Name] : default);
 

@@ -76,7 +76,10 @@ namespace QuickParser.Classes
         /// <summary>
         /// Overwrite to modify or augment the conversion between parsed rows and the resulting C# objects
         /// </summary>
-        protected virtual IEnumerable<TObject> OnParse => _parsedRows.Select(r => Mapping.Map(r, GetParams()));
+        protected virtual IEnumerable<TObject> OnParse()
+        {
+            return _parsedRows.Select(r => Mapping.Map(r, (TObject?)Activator.CreateInstance(typeof(TObject)) ?? throw new InvalidOperationException(), GetParams()));
+        }
 
         /// <summary>
         /// Overwrite to provide extra data to the <see cref="IParsedRowMapping{T}.Map"/> method
@@ -88,6 +91,6 @@ namespace QuickParser.Classes
         /// Converts all <see cref="ParsedRow"/> into <see cref="TObject"/>, runs <see cref="PostProcessing(IEnumerable{TObject})"/> and returns
         /// </summary>
         /// <returns>Final list of parsed objects</returns>
-        public List<TObject> Parse() => PostProcessing(OnParse);
+        public List<TObject> Parse() => PostProcessing(OnParse());
     }
 }

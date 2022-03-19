@@ -1,4 +1,7 @@
-﻿using QuickParser.Interfaces;
+﻿using System.Linq;
+using QuickParser.Attributes;
+using QuickParser.Helpers;
+using QuickParser.Interfaces;
 
 namespace QuickParser.Classes
 {
@@ -6,10 +9,10 @@ namespace QuickParser.Classes
     /// Provides the necessary structure to map CSV content to C# objects
     /// </summary>
     /// <typeparam name="TObject">Type of the resulting C# object</typeparam>
-    public abstract class ParserBase<TObject>
+    public abstract class ParserBase<TObject, TColumnDef> : IParserBase<TObject> where TColumnDef : struct, IConvertible
     {
-        protected List<ParsedRow> _parsedRows;
-        protected string[] _columns;
+        private readonly List<ParsedRow> _parsedRows;
+        private readonly string[] _columns;
 
         /// <summary>
         /// Overwrite when the delimiter character isn't a comma
@@ -19,7 +22,10 @@ namespace QuickParser.Classes
         /// <summary>
         /// Provides all column names
         /// </summary>
-        protected abstract string[] Headers { get; }
+        protected string[] _headers = Enum.GetValues(typeof(TColumnDef))
+            .OfType<TColumnDef>()
+            .Select(v => (v as Enum)?.GetAttributeOfType<ColumnAttribute>()?.Name ?? "")
+            .ToArray();
 
         /// <summary>
         /// Provides the mapping recipe for all properties
@@ -50,11 +56,11 @@ namespace QuickParser.Classes
 
         private bool IsHeaderValid()
         {
-            if (Headers.Length != _columns.Length)
+            if (_headers.Length != _columns.Length)
                 return false;
 
-            for (int i = 0; i < Headers.Length; i++)
-                if (Headers[i] != _columns[i])
+            for (int i = 0; i < _headers.Length; i++)
+                if (_headers[i] != _columns[i])
                     return false;
 
             return true;

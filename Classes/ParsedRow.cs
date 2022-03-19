@@ -1,4 +1,7 @@
-﻿namespace QuickParser.Classes
+﻿using QuickParser.Attributes;
+using QuickParser.Helpers;
+
+namespace QuickParser.Classes
 {
     /// <summary>
     /// Contains all the cells content for a single row
@@ -23,7 +26,14 @@
         /// Gets the value of the cell in a specified column
         /// </summary>
         /// <param name="columnName">Name of the column to look in</param>
-        /// <returns>Value of the cell in a specified column</returns>
+        /// <returns>Value of the cell in a specified column or an empty string for invalid column names</returns>
         public string this[string columnName] => _cells.ContainsKey(columnName) ? _cells[columnName] : "";
+
+        /// <summary>
+        /// Gets the value of the cell in a specified column
+        /// </summary>
+        /// <param name="columnName">Enum member that has a <see cref="ColumnAttribute"/></param>
+        /// <returns>Value of the cell in a specified column or an empty string for invalid columns</returns>
+        public string this[Enum columnName] => this[columnName.GetAttributeOfType<ColumnAttribute>()?.Name ?? ""];
     }
 }

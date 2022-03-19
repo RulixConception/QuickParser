@@ -1,4 +1,7 @@
-﻿namespace QuickParser.Classes
+﻿using QuickParser.Attributes;
+using QuickParser.Helpers;
+
+namespace QuickParser.Classes
 {
     /// <summary>
     /// Contains transform instructions to enable the reading and conversion of the cells of a column
@@ -19,7 +22,7 @@
         /// </summary>
         public int? Index { get; set; }
 
-        public ColumnMap(string columnName, Func<string?, T> transform)
+        public ColumnMap(Enum columnName, Func<string?, T> transform)
             : this(columnName, (value, _) => transform.Invoke(value))
         {
 
@@ -31,9 +34,9 @@
 
         }
 
-        public ColumnMap(string columnName, Func<string?, ParsedRow, T> transform)
+        public ColumnMap(Enum columnName, Func<string?, ParsedRow, T> transform)
         {
-            Name = columnName;
+            Name = columnName.GetAttributeOfType<ColumnAttribute>()?.Name ?? "";
             _transformWithValue = transform;
         }
 
@@ -51,6 +54,11 @@
         public ColumnMap(string columnName)
         {
             Name = columnName;
+        }
+
+        public ColumnMap(Enum columnName)
+        {
+            Name = columnName.GetAttributeOfType<ColumnAttribute>()?.Name ?? "";
         }
 
         public ColumnMap(int columnIndex)

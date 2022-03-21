@@ -8,9 +8,9 @@ namespace QuickParser.Classes
     /// </summary>
     public class ParsedRow
     {
-        private readonly Dictionary<string, string> _cells;
+        private readonly IDictionary<string, string> _cells;
 
-        public ParsedRow(Dictionary<string, string> cells)
+        public ParsedRow(IDictionary<string, string> cells)
         {
             _cells = cells;
         }

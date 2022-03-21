@@ -11,7 +11,7 @@ namespace QuickParser.Classes
     /// <typeparam name="TObject">Type of the resulting C# object</typeparam>
     public abstract class ParserBase<TObject, TColumnDef> : IParserBase<TObject> where TColumnDef : struct, IConvertible
     {
-        private readonly List<ParsedRow> _parsedRows;
+        private readonly IList<ParsedRow> _parsedRows;
         private readonly string[] _columns;
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace QuickParser.Classes
         /// </summary>
         /// <param name="objects">Unedited parsed <see cref="IEnumerable{TObject}"/> of <see cref="TObject"/></param>
         /// <returns>Final list of <see cref="TObject"/></returns>
-        protected virtual List<TObject> PostProcessing(IEnumerable<TObject> objects) => objects.ToList();
+        protected virtual IList<TObject> PostProcessing(IEnumerable<TObject> objects) => objects.ToList();
 
         /// <summary>
         /// Overwrite to modify or augment the conversion between parsed rows and the resulting C# objects
@@ -91,6 +91,6 @@ namespace QuickParser.Classes
         /// Converts all <see cref="ParsedRow"/> into <see cref="TObject"/>, runs <see cref="PostProcessing(IEnumerable{TObject})"/> and returns
         /// </summary>
         /// <returns>Final list of parsed objects</returns>
-        public List<TObject> Parse() => PostProcessing(OnParse());
+        public IList<TObject> Parse() => PostProcessing(OnParse());
     }
 }

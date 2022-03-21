@@ -2,6 +2,6 @@
 {
     public interface IParserBase<TObject>
     {
-        List<TObject> Parse();
+        IList<TObject> Parse();
     }
 }

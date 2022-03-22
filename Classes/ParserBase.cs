@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using QuickParser.Attributes;
+﻿using QuickParser.Attributes;
 using QuickParser.Helpers;
 using QuickParser.Interfaces;
 
@@ -8,8 +7,9 @@ namespace QuickParser.Classes
     /// <summary>
     /// Provides the necessary structure to map CSV content to C# objects
     /// </summary>
-    /// <typeparam name="TObject">Type of the resulting C# object</typeparam>
-    public abstract class ParserBase<TObject, TColumnDef> : IParserBase<TObject> where TColumnDef : struct, IConvertible
+    /// <typeparam name="TEntity">Type of the resulting C# object</typeparam>
+    /// <typeparam name="TColumnDef">Type of the enum that defines the columns of the CSV</typeparam>
+    public abstract class ParserBase<TEntity, TColumnDef> : IParserBase<TEntity> where TColumnDef : struct, IConvertible
     {
         private readonly IList<ParsedRow> _parsedRows;
         private readonly string[] _columns;
@@ -30,7 +30,7 @@ namespace QuickParser.Classes
         /// <summary>
         /// Provides the mapping recipe for all properties
         /// </summary>
-        protected abstract IParsedRowMapping<TObject> Mapping { get; }
+        protected abstract IParsedRowMapping<TEntity> Mapping { get; }
 
         /// <summary>
         /// Row index at where the header is located (zero based)
@@ -67,30 +67,34 @@ namespace QuickParser.Classes
         }
 
         /// <summary>
-        /// Overwrite to edit the resulting list of <see cref="TObject"/> before it is returned by <see cref="Parse"/>
+        /// Overwrite to edit the resulting list of <see cref="TEntity"/> before it is returned by <see cref="Parse"/>
         /// </summary>
-        /// <param name="objects">Unedited parsed <see cref="IEnumerable{TObject}"/> of <see cref="TObject"/></param>
-        /// <returns>Final list of <see cref="TObject"/></returns>
-        protected virtual IList<TObject> PostProcessing(IEnumerable<TObject> objects) => objects.ToList();
+        /// <param name="objects">Unedited parsed <see cref="IEnumerable{TObject}"/> of <see cref="TEntity"/></param>
+        /// <returns>Final list of <see cref="TEntity"/></returns>
+        protected virtual IList<TEntity> PostProcessing(IEnumerable<TEntity> objects) => objects.ToList();
 
         /// <summary>
         /// Overwrite to modify or augment the conversion between parsed rows and the resulting C# objects
         /// </summary>
-        protected virtual IEnumerable<TObject> OnParse()
-        {
-            return _parsedRows.Select(r => Mapping.Map(r, (TObject?)Activator.CreateInstance(typeof(TObject)) ?? throw new InvalidOperationException(), GetParams()));
-        }
+        protected virtual IEnumerable<TEntity> OnParse() => _parsedRows.Select(r => Mapping.Map(r, OnInstantiate()));
 
         /// <summary>
-        /// Overwrite to provide extra data to the <see cref="IParsedRowMapping{T}.Map"/> method
+        /// Creates and returns an instance of <see cref="TEntity"/>
         /// </summary>
-        /// <returns>All objects that <see cref="IParsedRowMapping{T}.Map"/> should receive</returns>
-        protected virtual object[] GetParams() => Array.Empty<object>();
+        /// <param name="parameters">Optional parameters provided by overwritting <see cref="GetParams"/></param>
+        /// <returns>An instance of <see cref="TEntity"/></returns>
+        protected virtual TEntity OnInstantiate() => (TEntity?)Activator.CreateInstance(typeof(TEntity)) ?? throw new NullReferenceException();
 
         /// <summary>
-        /// Converts all <see cref="ParsedRow"/> into <see cref="TObject"/>, runs <see cref="PostProcessing(IEnumerable{TObject})"/> and returns
+        /// Converts all <see cref="ParsedRow"/> into <see cref="TEntity"/>, runs <see cref="PostProcessing(IEnumerable{TEntity})"/> and returns
         /// </summary>
         /// <returns>Final list of parsed objects</returns>
-        public IList<TObject> Parse() => PostProcessing(OnParse());
+        public IList<TEntity> Parse() => PostProcessing(OnParse());
+
+        /// <summary>
+        /// Same as <see cref="Parse"/> but will cast into type <see cref="T"/>
+        /// </summary>
+        /// <returns>Final list of parsed objects casted into <see cref="T"/></returns>
+        public IList<T> Parse<T>() => Parse().Cast<T>().ToList();
     }
 }
